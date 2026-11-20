@@ -60,7 +60,12 @@ TESTS = [
 ]
 
 # (id, test_id, calibration_id, control_reading_id, kind, freq, level, note)
+# 注意：行序即插入序；对照读数必须先于引用它的读数插入（外键即时检查）。
 READINGS = [
+    # T9：对照读数，属未勾选组时仅沿引用带入
+    (901, 9, 2, None, "control", 100.0, 30.2, None),
+    (902, 9, 2, 901, "control", 125.0, 29.8, None),
+    (903, 9, None, None, "control", 160.0, 29.1, None),
     # T1：跨组引用 G3/T9 的对照读数 R901
     (101, 1, 1, 901, "measurement", 100.0, 52.1, None),
     (102, 1, 1, 901, "measurement", 125.0, 51.0, None),
@@ -71,16 +76,14 @@ READINGS = [
     # T3：引用 R902，R902 再引用 R901（跨组链式引用）
     (201, 3, 1, 902, "measurement", 100.0, 55.0, None),
     (202, 3, None, None, "measurement", 125.0, 54.2, None),
-    # T9：对照读数，属未勾选组时仅沿引用带入
-    (901, 9, 2, None, "control", 100.0, 30.2, None),
-    (902, 9, 2, 901, "control", 125.0, 29.8, None),
-    (903, 9, None, None, "control", 160.0, 29.1, None),
 ]
 
 
 def create_sample_db(path: str) -> str:
     conn = sqlite3.connect(path)
     try:
+        # 演示库的结构与「旧采集软件导出」的库一致：含外键声明，运行外键检查
+        conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(DDL)
         conn.executemany("INSERT INTO groups VALUES (?,?,?)", GROUPS)
         conn.executemany("INSERT INTO calibrations VALUES (?,?,?,?)", CALIBRATIONS)

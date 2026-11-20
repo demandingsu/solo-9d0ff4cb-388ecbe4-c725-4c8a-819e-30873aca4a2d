@@ -8,38 +8,31 @@
 <fieldset>
   <legend>组 #{{ g.row.id }}「{{ g.row.name }}」{% if g.row.description %}— {{ g.row.description }}{% endif %}</legend>
   {% for t in g.tests %}
-  <div style="margin:.6rem 0">
-    <label>
-      <input type="checkbox" class="tsel" name="test" value="{{ t.row.id }}"
-             {% if t.selected %}checked{% endif %}>
-      <b>试验 #{{ t.row.id }}「{{ t.row.name }}」</b>
-    </label>
-    <span class="muted">
-      {% if t.row.standard %}标准 {{ t.row.standard }} ｜{% endif %}
-      {% if t.row.conducted_on %}{{ t.row.conducted_on }} ｜{% endif %}
-      试验级校准 {{ t.row.calibration_id if t.row.calibration_id is not none else "无" }}
-    </span>
-    {% if t.readings %}
-    <table id="rd-{{ t.row.id }}">
-      <tr>
-        {% for h in headers %}<th>{{ h }}</th>{% endfor %}
-        <th>剔除</th>
-      </tr>
-      {% for r in t.readings %}
-      <tr>
-        {% for c in r.cells %}<td>{{ c if c is not none else "" }}</td>{% endfor %}
-        <td><input type="checkbox" class="excl" name="excl" value="{{ r.id }}"
-                   {% if r.excluded %}checked{% endif %}></td>
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}
-    <p class="muted">（该试验无读数）</p>
-    {% endif %}
-  </div>
+  {% include "_test_block.html" %}
   {% endfor %}
 </fieldset>
 {% endfor %}
+
+{% if dangling_tests or dangling_readings %}
+<fieldset class="warn">
+  <legend>归属不完整（引用目标不存在）</legend>
+  <p class="muted">以下试验/读数的所属组或所属试验在源库中找不到，无法按组展示。
+    如勾选其中的试验，预览页会报告悬空引用并阻止下载。</p>
+  {% for t in dangling_tests %}
+  {% include "_test_block.html" %}
+  {% endfor %}
+  {% if dangling_readings %}
+  <p><b>无法归属到任何试验的读数</b></p>
+  <table>
+    <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+    {% for r in dangling_readings %}
+    <tr>{% for c in r.cells %}<td>{{ c if c is not none else "" }}</td>{% endfor %}</tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</fieldset>
+{% endif %}
+
 <button type="submit" class="primary">生成预览</button>
 </form>
 <script>

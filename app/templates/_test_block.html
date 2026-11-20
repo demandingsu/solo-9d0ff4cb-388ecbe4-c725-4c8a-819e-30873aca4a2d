@@ -1,0 +1,29 @@
+<div style="margin:.6rem 0">
+  <label>
+    <input type="checkbox" class="tsel" name="test" value="{{ t.row.id }}"
+           {% if t.selected %}checked{% endif %}>
+    <b>试验 #{{ t.row.id }}「{{ t.row.name }}」</b>
+  </label>
+  <span class="muted">
+    {% if t.row.standard %}标准 {{ t.row.standard }} ｜{% endif %}
+    {% if t.row.conducted_on %}{{ t.row.conducted_on }} ｜{% endif %}
+    试验级校准 {{ t.row.calibration_id if t.row.calibration_id is not none else "无" }}
+  </span>
+  {% if t.readings %}
+  <table id="rd-{{ t.row.id }}">
+    <tr>
+      {% for h in headers %}<th>{{ h }}</th>{% endfor %}
+      <th>剔除</th>
+    </tr>
+    {% for r in t.readings %}
+    <tr>
+      {% for c in r.cells %}<td>{{ c if c is not none else "" }}</td>{% endfor %}
+      <td><input type="checkbox" class="excl" name="excl" value="{{ r.id }}"
+                 {% if r.excluded %}checked{% endif %}></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">（该试验无读数）</p>
+  {% endif %}
+</div>
